@@ -4,18 +4,8 @@
 // module, which is what guarantees CANVAS_TOKEN cannot end up in the browser.
 import "server-only";
 
-import type { ApiErrorCode, Course, Deadline } from "./types";
-
-/** An error whose message is safe to show to the user. Never put secrets in it. */
-export class CanvasError extends Error {
-  constructor(
-    public readonly code: ApiErrorCode,
-    message: string,
-  ) {
-    super(message);
-    this.name = "CanvasError";
-  }
-}
+import { ServiceError } from "./service-error";
+import type { Course, Deadline } from "./types";
 
 // Only the fields we read. Canvas sends many more.
 type CanvasCourse = {
@@ -43,13 +33,13 @@ function readConfig(): { baseUrl: string; token: string } {
   const token = process.env.CANVAS_TOKEN?.trim();
 
   if (!baseUrl || !token) {
-    throw new CanvasError(
+    throw new ServiceError(
       "not_configured",
       "Canvas isn't connected yet. Add CANVAS_BASE_URL and CANVAS_TOKEN to .env.local.",
     );
   }
   if (!baseUrl.startsWith("https://")) {
-    throw new CanvasError(
+    throw new ServiceError(
       "not_configured",
       "CANVAS_BASE_URL should start with https://",
     );
@@ -71,17 +61,17 @@ async function canvasGet<T>(path: string, params: Record<string, string>): Promi
   } catch {
     // Network failure or timeout. The original error is dropped on purpose
     // so nothing about the request can leak into a response or a log.
-    throw new CanvasError("upstream_error", "Couldn't reach Canvas. Try again in a bit.");
+    throw new ServiceError("upstream_error", "Couldn't reach Canvas. Try again in a bit.");
   }
 
   if (response.status === 401 || response.status === 403) {
-    throw new CanvasError(
+    throw new ServiceError(
       "unauthorized",
       "Canvas rejected the access token. It may have expired.",
     );
   }
   if (!response.ok) {
-    throw new CanvasError("upstream_error", "Canvas is having trouble right now.");
+    throw new ServiceError("upstream_error", "Canvas is having trouble right now.");
   }
   return (await response.json()) as T;
 }

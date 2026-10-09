@@ -23,6 +23,27 @@ export type DeadlinesResponse = {
   courses: Course[];
 };
 
+export type CalendarEvent = {
+  id: string;
+  title: string;
+  /** True for events with a date but no time, like a holiday. */
+  allDay: boolean;
+  /**
+   * Timed events: ISO 8601 timestamps in UTC.
+   * All-day events: plain dates ("2026-10-12"), and `end` is exclusive,
+   * so a one-day event on the 12th ends on "2026-10-13".
+   */
+  start: string;
+  end: string;
+  location: string | null;
+  /** Link to the event in Google Calendar. */
+  url: string | null;
+};
+
+export type EventsResponse = {
+  events: CalendarEvent[];
+};
+
 export type ApiErrorCode = "not_configured" | "unauthorized" | "upstream_error";
 
 export type ApiErrorResponse = {

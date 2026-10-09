@@ -1,10 +1,10 @@
+import { CalendarCard } from "@/components/CalendarCard";
 import { Card, CardMessage } from "@/components/Card";
 import { DeadlinesCard } from "@/components/DeadlinesCard";
 
 // Sections that are not built yet. Each becomes its own component, like
 // DeadlinesCard, when its phase comes around.
 const PLACEHOLDERS = [
-  { title: "Calendar", note: "Google Calendar will show up here." },
   { title: "Weather & transit", note: "Forecast and campus buses, later." },
   { title: "Email", note: "Highlights from Gmail and OU Outlook, later." },
   { title: "Projects & to-dos", note: "Your own list, once the database is set up." },
@@ -18,6 +18,7 @@ export default function Home() {
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <DeadlinesCard />
+        <CalendarCard />
         {PLACEHOLDERS.map(({ title, note }) => (
           <Card key={title} title={title}>
             <CardMessage>{note}</CardMessage>

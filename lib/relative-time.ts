@@ -24,6 +24,25 @@ export function formatRelativeDay(due: Date, now: Date = new Date()): string {
   return relative.format(days, "day");
 }
 
+/** "today", "tomorrow", then "Mon, Oct 12" for anything further out. */
+export function formatDayHeading(date: Date, now: Date = new Date()): string {
+  const days = Math.round((startOfDay(date) - startOfDay(now)) / DAY_MS);
+
+  if (days === 0 || days === 1) return relative.format(days, "day");
+  return date.toLocaleDateString("en", { weekday: "short", month: "short", day: "numeric" });
+}
+
+/**
+ * Reads a plain date like "2026-10-12" as midnight in the local time zone.
+ *
+ * `new Date("2026-10-12")` would mean midnight UTC instead, which is still
+ * the evening of the 11th in Oklahoma.
+ */
+export function parseLocalDate(isoDate: string): Date {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
 /** True when the due date is still ahead of us and less than `hours` away. */
 export function isDueWithin(due: Date, hours: number, now: Date = new Date()): boolean {
   const msLeft = due.getTime() - now.getTime();

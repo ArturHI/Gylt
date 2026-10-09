@@ -1,12 +1,12 @@
 # Personal dashboard
 
-One calm screen with six sections. Phase 1 has the layout and the
-**Classes & deadlines** card, which reads live data from Canvas. The other
-five cards are placeholders for later phases.
+One calm screen with six sections. Two are live so far: **Classes &
+deadlines** (Canvas) and **Calendar** (Google Calendar). The other four
+cards are placeholders for later phases.
 
 ## Setup
 
-You need Node.js 20 or newer.
+You need Node.js 20.12 or newer.
 
 1. Install dependencies:
 
@@ -37,25 +37,70 @@ You need Node.js 20 or newer.
 
    Open http://localhost:3000. Restart the dev server after editing `.env.local`.
 
+## Connecting Google Calendar
+
+Google needs a one-time setup so it knows which app is asking for your
+calendar. Use the Google account whose calendar you want to see.
+
+1. Go to https://console.cloud.google.com and create a new project (any name).
+2. Open **APIs & Services → Library**, search for **Google Calendar API**,
+   and click **Enable**.
+3. Open **Google Auth Platform** (also called "OAuth consent screen") and
+   click **Get started**. Give the app a name, pick your email for both
+   email fields, and choose **External** as the audience.
+4. Under **Audience**, click **Publish app**. This matters: while the app
+   is in "Testing", Google expires your sign-in after 7 days. You do not
+   need to submit it for verification.
+5. Under **Clients**, click **Create client**, choose **Desktop app**, and
+   create it. Copy the client ID and client secret into `.env.local`:
+
+   ```
+   GOOGLE_CLIENT_ID=...
+   GOOGLE_CLIENT_SECRET=...
+   ```
+
+6. Connect your account:
+
+   ```bash
+   npm run google:auth
+   ```
+
+   Your browser opens Google's sign-in page. Because the app is unverified,
+   Google shows a warning; click **Advanced → Go to (your app name)**. That
+   is expected for an app only you use. When you approve, the script saves
+   `GOOGLE_REFRESH_TOKEN` into `.env.local` for you without printing it.
+
+7. Restart `npm run dev`.
+
+The app asks only for `calendar.events.readonly`: it can read events and
+cannot change anything. It shows your primary calendar.
+
 ## How it fits together
 
 ```
 app/
   page.tsx                 the one screen: a grid of six cards
   globals.css              the color palette (light and dark) as CSS variables
-  api/deadlines/route.ts   GET /api/deadlines, the only thing that calls Canvas
+  api/deadlines/route.ts   GET /api/deadlines (Canvas)
+  api/events/route.ts      GET /api/events (Google Calendar)
 components/
   Card.tsx                 shared card frame and empty-state message
-  DeadlinesCard.tsx        fetches /api/deadlines and renders the list
+  DeadlinesCard.tsx        renders /api/deadlines
+  CalendarCard.tsx         renders /api/events, grouped by day
 lib/
   canvas.ts                server-only Canvas client (reads the token)
-  relative-time.ts         "tomorrow", "in 3 days"
+  google-calendar.ts       server-only Google client (reads the tokens)
+  service-error.ts         one error type and JSON error shape for all routes
+  use-api.ts               the loading / error / ready hook every card uses
+  relative-time.ts         "tomorrow", "in 3 days", local-date parsing
   types.ts                 the JSON shapes our API returns
+scripts/
+  google-auth.mjs          one-time Google sign-in (npm run google:auth)
 ```
 
-Data flows one way: **Canvas → `lib/canvas.ts` → `/api/deadlines` → card**.
-The UI never talks to Canvas directly, so a future iPhone app can call the
-same `/api/deadlines` route.
+Data flows one way: **service → `lib/<service>.ts` → `/api/...` → card**.
+The UI never talks to Canvas or Google directly, so a future iPhone app can
+call the same API routes.
 
 ### `GET /api/deadlines`
 
@@ -80,7 +125,33 @@ Success (`200`):
 Deadlines are unfinished items with a due date, soonest first. Work you have
 already submitted or marked complete in Canvas is left out.
 
-Failure (`502` or `503`):
+### `GET /api/events`
+
+Events on your primary calendar from now through the next 7 days, soonest
+first (`200`):
+
+```json
+{
+  "events": [
+    {
+      "id": "abc123",
+      "title": "CS 2334 lecture",
+      "allDay": false,
+      "start": "2026-10-12T15:00:00.000Z",
+      "end": "2026-10-12T15:50:00.000Z",
+      "location": "Devon Energy Hall",
+      "url": "https://www.google.com/calendar/event?eid=..."
+    }
+  ]
+}
+```
+
+All-day events have `"allDay": true` and plain dates instead of timestamps
+(`"start": "2026-10-12"`), with an exclusive `end`.
+
+### Errors
+
+Both routes fail the same way (`502` or `503`):
 
 ```json
 { "error": { "code": "not_configured", "message": "…" } }
@@ -93,3 +164,4 @@ Failure (`502` or `503`):
 - `npm run dev` starts the dev server
 - `npm run build` makes a production build
 - `npm run lint` runs ESLint
+- `npm run google:auth` connects Google Calendar (one-time)
