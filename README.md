@@ -1,8 +1,9 @@
 # Personal dashboard
 
-One calm screen with six sections. Two are live so far: **Classes &
-deadlines** (Canvas) and **Calendar** (Google Calendar). The other four
-cards are placeholders for later phases.
+One calm screen with six sections. Three are live so far: **Classes &
+deadlines** (Canvas), **Calendar** (Google Calendar) and **Weather**
+(National Weather Service). The other three cards are placeholders for
+later phases.
 
 ## Setup
 
@@ -75,6 +76,17 @@ calendar. Use the Google account whose calendar you want to see.
 The app asks only for `calendar.events.readonly`: it can read events and
 cannot change anything. It shows your primary calendar.
 
+## Weather
+
+Weather needs no setup. It comes from the National Weather Service, which
+is free and has no API key, and it defaults to Norman, OK. To use another
+place in the United States, add its coordinates to `.env.local`:
+
+```
+WEATHER_LATITUDE=35.2226
+WEATHER_LONGITUDE=-97.4395
+```
+
 ## How it fits together
 
 ```
@@ -83,13 +95,16 @@ app/
   globals.css              the color palette (light and dark) as CSS variables
   api/deadlines/route.ts   GET /api/deadlines (Canvas)
   api/events/route.ts      GET /api/events (Google Calendar)
+  api/weather/route.ts     GET /api/weather (National Weather Service)
 components/
   Card.tsx                 shared card frame and empty-state message
   DeadlinesCard.tsx        renders /api/deadlines
   CalendarCard.tsx         renders /api/events, grouped by day
+  WeatherCard.tsx          renders /api/weather
 lib/
   canvas.ts                server-only Canvas client (reads the token)
   google-calendar.ts       server-only Google client (reads the tokens)
+  weather.ts               server-only weather client (no key needed)
   service-error.ts         one error type and JSON error shape for all routes
   use-api.ts               the loading / error / ready hook every card uses
   relative-time.ts         "tomorrow", "in 3 days", local-date parsing
@@ -99,7 +114,7 @@ scripts/
 ```
 
 Data flows one way: **service → `lib/<service>.ts` → `/api/...` → card**.
-The UI never talks to Canvas or Google directly, so a future iPhone app can
+The UI never talks to an outside service directly, so a future iPhone app can
 call the same API routes.
 
 ### `GET /api/deadlines`
@@ -149,9 +164,31 @@ first (`200`):
 All-day events have `"allDay": true` and plain dates instead of timestamps
 (`"start": "2026-10-12"`), with an exclusive `end`.
 
+### `GET /api/weather`
+
+This hour's conditions and the next three whole days (`200`). Temperatures
+are in degrees Celsius. `days` only includes days that still have both a
+high and a low ahead, so in the evening it starts from tomorrow.
+
+```json
+{
+  "location": "Norman, OK",
+  "current": { "temperature": 30, "summary": "Clear" },
+  "days": [
+    {
+      "date": "2026-10-10",
+      "high": 32,
+      "low": 17,
+      "summary": "Sunny",
+      "precipitationChance": 0
+    }
+  ]
+}
+```
+
 ### Errors
 
-Both routes fail the same way (`502` or `503`):
+Every route fails the same way (`502` or `503`):
 
 ```json
 { "error": { "code": "not_configured", "message": "…" } }

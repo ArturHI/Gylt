@@ -44,6 +44,30 @@ export type EventsResponse = {
   events: CalendarEvent[];
 };
 
+/** One whole day of forecast. All temperatures are in degrees Celsius. */
+export type WeatherDay = {
+  /** A plain date at the forecast location, like "2026-10-12". */
+  date: string;
+  high: number;
+  low: number;
+  /** The daytime conditions, for example "Mostly Sunny". */
+  summary: string;
+  /** 0 to 100 across the day and night, or null when the forecast doesn't say. */
+  precipitationChance: number | null;
+};
+
+export type WeatherResponse = {
+  /** For example "Norman, OK". */
+  location: string;
+  /** This hour. Temperature is in degrees Celsius. */
+  current: { temperature: number; summary: string };
+  /**
+   * Only days with both a high and a low still ahead, so in the evening
+   * this starts from tomorrow.
+   */
+  days: WeatherDay[];
+};
+
 export type ApiErrorCode = "not_configured" | "unauthorized" | "upstream_error";
 
 export type ApiErrorResponse = {
