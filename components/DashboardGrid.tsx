@@ -180,20 +180,28 @@ export function DashboardGrid() {
 
   return (
     <>
-      <header className="flex items-baseline justify-between">
-        <h1 className="text-base font-medium">Dashboard</h1>
+      <header className="flex items-center justify-between gap-4">
+        <div className="flex min-w-0 items-baseline gap-3">
+          <h1 className="text-lg font-medium tracking-tight">Dashboard</h1>
+          {/* The date depends on the viewer's clock, so only the browser draws it. */}
+          {isBrowser && (
+            <p className="truncate text-sm text-muted">
+              {new Date().toLocaleDateString("en", { weekday: "long", month: "long", day: "numeric" })}
+            </p>
+          )}
+        </div>
         {editable && (
           <button
             type="button"
             onClick={resetLayouts}
-            className="text-xs text-muted transition-colors hover:text-ink"
+            className="shrink-0 rounded-full border border-line px-3 py-1 text-xs text-muted transition hover:border-muted hover:text-ink active:scale-[0.97]"
           >
             Reset layout
           </button>
         )}
       </header>
 
-      <div ref={containerRef} className="mt-8">
+      <div ref={containerRef} className="mt-6">
         {isBrowser && mounted && (
           <Responsive
             key={gridKey}

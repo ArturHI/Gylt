@@ -46,10 +46,10 @@ export function Dialog({ open, onClose, title, children }: DialogProps) {
       onClick={(event) => {
         if (event.target === ref.current) onClose();
       }}
-      className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-xl border border-line bg-surface p-0 text-ink backdrop:bg-black/70"
+      className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-2xl border border-line bg-surface p-0 text-ink shadow-2xl shadow-black/60 backdrop:bg-black/70 backdrop:backdrop-blur-sm"
     >
       <div className="p-5">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-muted">{title}</h3>
+        <h3 className="text-sm font-medium">{title}</h3>
         {/* Rendered only while open, so a form inside starts fresh each time. */}
         {open && <div className="mt-4">{children}</div>}
       </div>

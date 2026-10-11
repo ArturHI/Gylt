@@ -8,9 +8,9 @@
 
 import { useState } from "react";
 
-import { Card, CardMessage } from "@/components/Card";
+import { Card, CardMessage, CardSkeleton } from "@/components/Card";
 import { IconButton } from "@/components/IconButton";
-import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
+import { BookIcon, ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
 import { formatRelativeDay, isDueWithin } from "@/lib/relative-time";
 import type { Deadline, DeadlinesResponse } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
@@ -48,6 +48,7 @@ export function DeadlinesCard() {
   return (
     <Card
       title="Classes & deadlines"
+      icon={<BookIcon className="size-4" />}
       actions={
         pageCount > 1 && (
           <nav aria-label="Deadline pages" className="flex items-center gap-0.5 text-xs text-muted">
@@ -72,7 +73,7 @@ export function DeadlinesCard() {
         )
       }
     >
-      {state.status === "loading" && <CardMessage>Loading…</CardMessage>}
+      {state.status === "loading" && <CardSkeleton />}
       {state.status === "error" && <CardMessage>{state.message}</CardMessage>}
       {state.status === "ready" && deadlines.length === 0 && (
         <CardMessage>Nothing due. Enjoy it.</CardMessage>
@@ -116,7 +117,10 @@ function DeadlineRow({ deadline }: { deadline: Deadline }) {
       <time
         dateTime={deadline.dueAt}
         title={due.toLocaleString()}
-        className={`shrink-0 text-xs ${soon ? "font-medium text-accent" : "text-muted"}`}
+        // Anything due soon gets a tinted pill so it stands out at a glance.
+        className={`shrink-0 text-xs ${
+          soon ? "rounded-full bg-accent/15 px-2 py-0.5 font-medium text-accent" : "text-muted"
+        }`}
       >
         {formatRelativeDay(due)}
       </time>

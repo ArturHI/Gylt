@@ -1,7 +1,7 @@
 "use client";
 
-import { Card, CardMessage } from "@/components/Card";
-import { CheckIcon, FlameIcon } from "@/components/icons";
+import { Card, CardMessage, CardSkeleton } from "@/components/Card";
+import { CheckIcon, FlameIcon, LanguagesIcon } from "@/components/icons";
 import { parseLocalDate } from "@/lib/relative-time";
 import type { DuolingoResponse } from "@/lib/types";
 import { type ApiState, useApi } from "@/lib/use-api";
@@ -13,14 +13,14 @@ export function DuolingoCard() {
   const { state } = useApi<DuolingoResponse>("/api/duolingo");
 
   return (
-    <Card title="Duolingo">
+    <Card title="Duolingo" icon={<LanguagesIcon className="size-4" />}>
       <DuolingoBody state={state} />
     </Card>
   );
 }
 
 function DuolingoBody({ state }: { state: ApiState<DuolingoResponse> }) {
-  if (state.status === "loading") return <CardMessage>Loading…</CardMessage>;
+  if (state.status === "loading") return <CardSkeleton />;
   if (state.status === "error") return <CardMessage>{state.message}</CardMessage>;
 
   const { streak, lastStreakDate } = state.data;

@@ -40,7 +40,7 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-xs">
-      <h1 className="text-base font-medium">Dashboard</h1>
+      <h1 className="text-lg font-medium tracking-tight">Dashboard</h1>
       <input
         type="password"
         autoFocus
@@ -55,7 +55,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={checking || password === ""}
-        className="mt-4 w-full rounded-full bg-accent px-4 py-2 font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-40"
+        className="mt-4 w-full rounded-full bg-accent px-4 py-2 font-medium text-white transition hover:opacity-85 active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100"
       >
         {checking ? "Checking…" : "Sign in"}
       </button>

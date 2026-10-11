@@ -1,6 +1,8 @@
 // The kinds of button used inside pop-ups, kept in one place so they match.
 
-const BASE = "rounded-full px-4 py-1.5 font-medium transition-colors disabled:opacity-40";
+// active:scale gives a slight "press" when clicked.
+const BASE =
+  "rounded-full px-4 py-1.5 font-medium transition active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100";
 
 /** The main action: filled purple. */
 export const BUTTON_PRIMARY = `${BASE} bg-accent text-white hover:opacity-85`;

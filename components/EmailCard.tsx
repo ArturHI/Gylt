@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 
-import { Card, CardMessage } from "@/components/Card";
-import { BriefcaseIcon, HomeIcon } from "@/components/icons";
+import { Card, CardMessage, CardSkeleton } from "@/components/Card";
+import { BriefcaseIcon, HomeIcon, MailIcon } from "@/components/icons";
 import type { EmailsResponse, EmailSummary } from "@/lib/types";
 import { type ApiState, useApi } from "@/lib/use-api";
 
@@ -23,7 +23,11 @@ export function EmailCard() {
   const [account, setAccount] = useState<Account>("gmail");
 
   return (
-    <Card title="Email" actions={<AccountToggle selected={account} onSelect={setAccount} />}>
+    <Card
+      title="Email"
+      icon={<MailIcon className="size-4" />}
+      actions={<AccountToggle selected={account} onSelect={setAccount} />}
+    >
       <EmailBody state={state} account={account} />
     </Card>
   );
@@ -60,7 +64,7 @@ function AccountToggle({
 }
 
 function EmailBody({ state, account }: { state: ApiState<EmailsResponse>; account: Account }) {
-  if (state.status === "loading") return <CardMessage>Loading…</CardMessage>;
+  if (state.status === "loading") return <CardSkeleton />;
   if (state.status === "error") return <CardMessage>{state.message}</CardMessage>;
 
   const emails = state.data.emails.filter((email) => email.account === account);

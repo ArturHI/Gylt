@@ -80,3 +80,63 @@ export function FlameIcon({ className, lit }: IconProps & { lit: boolean }) {
     </svg>
   );
 }
+
+// --- Section icons, shown beside each card's title. ---------------------
+// Shapes from the Lucide icon set (ISC license).
+
+export function BookIcon({ className }: IconProps) {
+  return (
+    <svg {...outline} className={className}>
+      <path d="M12 7v14" />
+      <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
+    </svg>
+  );
+}
+
+export function CalendarIcon({ className }: IconProps) {
+  return (
+    <svg {...outline} className={className}>
+      <path d="M8 2v4M16 2v4M3 10h18" />
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+    </svg>
+  );
+}
+
+export function SunIcon({ className }: IconProps) {
+  return (
+    <svg {...outline} className={className}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+    </svg>
+  );
+}
+
+export function ListIcon({ className }: IconProps) {
+  return (
+    <svg {...outline} className={className}>
+      <rect x="3" y="5" width="6" height="6" rx="1" />
+      <path d="m3 17 2 2 4-4M13 6h8M13 12h8M13 18h8" />
+    </svg>
+  );
+}
+
+export function MailIcon({ className }: IconProps) {
+  return (
+    <svg {...outline} className={className}>
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+    </svg>
+  );
+}
+
+/** The "translate" symbol (文 beside A), for the Duolingo section. */
+export function LanguagesIcon({ className }: IconProps) {
+  return (
+    <svg {...outline} className={className}>
+      {/* 文 on the left */}
+      <path d="M2 5h12M7 2h1M4 14l6-6 2-3M5 8l6 6" />
+      {/* A on the right */}
+      <path d="m22 22-5-10-5 10M14 18h6" />
+    </svg>
+  );
+}

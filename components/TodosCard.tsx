@@ -3,9 +3,9 @@
 import { useState } from "react";
 
 import { BUTTON_DANGER, BUTTON_PRIMARY, BUTTON_SECONDARY } from "@/components/button-styles";
-import { Card, CardMessage } from "@/components/Card";
+import { Card, CardMessage, CardSkeleton } from "@/components/Card";
 import { Dialog } from "@/components/Dialog";
-import { PlusIcon } from "@/components/icons";
+import { ListIcon, PlusIcon } from "@/components/icons";
 import type { ApiErrorResponse, Todo, TodoResponse, TodosResponse } from "@/lib/types";
 import { type ApiState, useApi } from "@/lib/use-api";
 
@@ -55,13 +55,14 @@ export function TodosCard() {
   return (
     <Card
       title="Projects & to-dos"
+      icon={<ListIcon className="size-4" />}
       cornerAction={
         <button
           type="button"
           aria-label="Add a to-do"
           title="Add a to-do"
           onClick={() => setDialog({ kind: "add" })}
-          className="flex size-8 items-center justify-center rounded-full bg-accent text-white transition-opacity hover:opacity-85"
+          className="flex size-8 items-center justify-center rounded-full bg-accent text-white transition hover:opacity-85 active:scale-95"
         >
           <PlusIcon className="size-4" />
         </button>
@@ -99,7 +100,7 @@ function TodosBody({
   // Ids being saved right now, so their checkboxes can't be clicked twice.
   const [saving, setSaving] = useState<string[]>([]);
 
-  if (state.status === "loading") return <CardMessage>Loading…</CardMessage>;
+  if (state.status === "loading") return <CardSkeleton />;
   if (state.status === "error") return <CardMessage>{state.message}</CardMessage>;
 
   const { todos } = state.data;
@@ -126,7 +127,9 @@ function TodosBody({
             checked={saving.includes(todo.id)}
             disabled={saving.includes(todo.id)}
             onChange={() => markDone(todo)}
-            className="size-3.5 shrink-0 cursor-pointer accent-accent"
+            // appearance-none removes the browser's own box so ours shows:
+            // a ring that fills with purple once it is ticked.
+            className="size-4 shrink-0 cursor-pointer appearance-none rounded-full border border-muted transition-colors checked:border-accent checked:bg-accent hover:border-accent"
           />
           {/* One line only. `truncate` cuts the rest off with "…", and
               clicking shows the whole thing. */}

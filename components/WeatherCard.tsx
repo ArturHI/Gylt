@@ -1,6 +1,7 @@
 "use client";
 
-import { Card, CardMessage } from "@/components/Card";
+import { Card, CardMessage, CardSkeleton } from "@/components/Card";
+import { SunIcon } from "@/components/icons";
 import { formatDayHeading, parseLocalDate } from "@/lib/relative-time";
 import type { WeatherResponse } from "@/lib/types";
 import { type ApiState, useApi } from "@/lib/use-api";
@@ -12,14 +13,14 @@ export function WeatherCard() {
   const { state } = useApi<WeatherResponse>("/api/weather");
 
   return (
-    <Card title="Weather">
+    <Card title="Weather" icon={<SunIcon className="size-4" />}>
       <WeatherBody state={state} />
     </Card>
   );
 }
 
 function WeatherBody({ state }: { state: ApiState<WeatherResponse> }) {
-  if (state.status === "loading") return <CardMessage>Loading…</CardMessage>;
+  if (state.status === "loading") return <CardSkeleton />;
   if (state.status === "error") return <CardMessage>{state.message}</CardMessage>;
 
   const { location, current, days } = state.data;
