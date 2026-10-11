@@ -32,8 +32,15 @@ export function Dialog({ open, onClose, title, children }: DialogProps) {
   return (
     <dialog
       ref={ref}
-      // Fires however it was closed, including the Escape key.
-      onClose={onClose}
+      // Escape asks the dialog to "cancel". We stop the browser closing it
+      // by itself and go through onClose instead, so there is exactly one
+      // way a dialog closes: `open` becoming false. (Listening for the
+      // browser's own "close" event caused a bug: it arrives late, and
+      // could shut a dialog that had just been opened again.)
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
       // A click on the dimmed area lands on the <dialog> itself, while a
       // click inside lands on the inner <div>. Only the first one closes.
       onClick={(event) => {

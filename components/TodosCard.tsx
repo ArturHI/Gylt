@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { BUTTON_DANGER, BUTTON_PRIMARY, BUTTON_SECONDARY } from "@/components/button-styles";
 import { Card, CardMessage } from "@/components/Card";
 import { Dialog } from "@/components/Dialog";
 import { PlusIcon } from "@/components/icons";
@@ -11,12 +12,6 @@ import { type ApiState, useApi } from "@/lib/use-api";
 // These match the limits the API enforces.
 const MAX_TITLE_LENGTH = 200;
 const MAX_NOTE_LENGTH = 2000;
-
-// The three kinds of button the dialogs use, so they all match.
-const BUTTON = "rounded-full px-4 py-1.5 font-medium transition-colors disabled:opacity-40";
-const BUTTON_PRIMARY = `${BUTTON} bg-accent text-white hover:opacity-85`;
-const BUTTON_SECONDARY = `${BUTTON} border border-line text-ink hover:border-muted`;
-const BUTTON_DANGER = `${BUTTON} bg-danger text-white hover:opacity-85`;
 
 /** Which dialog is showing, if any. */
 type OpenDialog = { kind: "add" } | { kind: "view"; todo: Todo } | null;

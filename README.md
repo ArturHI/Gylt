@@ -9,7 +9,7 @@ One calm screen with six sections, all backed by live data:
 | Weather             | National Weather Service                      |
 | Projects & to-dos   | Your own Supabase database                    |
 | Email               | Gmail, plus OU mail forwarded into it         |
-| Spanish             | Duolingo streak                               |
+| Duolingo            | Duolingo streak                               |
 
 ## Using the dashboard
 
@@ -18,6 +18,10 @@ One calm screen with six sections, all backed by live data:
 - **Reset layout** (top right) puts everything back where it started.
 - **Email:** the two buttons in the card's corner switch between personal
   mail (house) and school mail (briefcase).
+- **Calendar:** a filled circle marks a day with an event; click it to see
+  that day's events. The arrows change month. Today has a thin ring.
+- **Deadlines:** the arrows in the card's corner page through your next
+  50 Canvas items. A taller section fits more on each page.
 - **To-dos:** the round **+** button adds one, with an optional note. Tick
   its checkbox to mark it done. Each shows as a single line; click it to
   read the whole thing, add or change its note, or delete it.
@@ -237,12 +241,14 @@ components/
   Card.tsx                 shared card frame and empty-state message
   icons.tsx                the house, briefcase and plus icons
   DeadlinesCard.tsx        renders /api/deadlines
-  CalendarCard.tsx         renders /api/events, grouped by day
+  CalendarCard.tsx         a month grid; days with events are filled in
+  IconButton.tsx           the small round arrow buttons
+  button-styles.ts         the shared look of pop-up buttons
   WeatherCard.tsx          renders /api/weather
   TodosCard.tsx            to-do bullets, the add button and its dialogs
   Dialog.tsx               a centered pop-up, built on the <dialog> element
   EmailCard.tsx            /api/emails with a personal / school toggle
-  SpanishCard.tsx          plain streak text from /api/duolingo (design comes later)
+  DuolingoCard.tsx         the streak flame and week row from /api/duolingo
 lib/
   canvas.ts                server-only Canvas client (reads the token)
   google-auth.ts           server-only Google sign-in (reads the tokens)
@@ -256,6 +262,7 @@ lib/
   session.ts               password check and the signed session cookie
   service-error.ts         one error type and JSON error shape for all routes
   use-api.ts               the loading / error / ready hook every card uses, with reload
+  use-element-height.ts    measures an element, for fitting deadlines to a page
   relative-time.ts         "tomorrow", "in 3 days", local-date parsing
   types.ts                 the JSON shapes our API returns
 scripts/
@@ -294,8 +301,9 @@ already submitted or marked complete in Canvas is left out.
 
 ### `GET /api/events`
 
-Events on your primary calendar from now through the next 7 days, soonest
-first (`200`):
+Events on your primary calendar, soonest first (`200`). With no parameters
+it covers the next 7 days. For another range, pass two ISO timestamps, up
+to 62 days apart: `/api/events?from=2026-10-01T05:00:00.000Z&to=2026-11-01T05:00:00.000Z`.
 
 ```json
 {

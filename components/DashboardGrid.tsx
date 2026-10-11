@@ -14,8 +14,8 @@ import "react-resizable/css/styles.css";
 
 import { CalendarCard } from "@/components/CalendarCard";
 import { DeadlinesCard } from "@/components/DeadlinesCard";
+import { DuolingoCard } from "@/components/DuolingoCard";
 import { EmailCard } from "@/components/EmailCard";
-import { SpanishCard } from "@/components/SpanishCard";
 import { TodosCard } from "@/components/TodosCard";
 import { WeatherCard } from "@/components/WeatherCard";
 
@@ -25,7 +25,9 @@ const SECTIONS = [
   { id: "weather", Component: WeatherCard },
   { id: "todos", Component: TodosCard },
   { id: "email", Component: EmailCard },
-  { id: "spanish", Component: SpanishCard },
+  // The id stays "spanish", the section's first name, because saved
+  // layouts refer to sections by id. Renaming it would reset them.
+  { id: "spanish", Component: DuolingoCard },
 ];
 
 // The grid changes shape with its own width (the page width minus the

@@ -19,18 +19,23 @@ type GoogleEvent = {
   end: GoogleEventTime;
 };
 
-/** Events on the primary calendar from now until `days` from now, soonest first. */
-export async function getUpcomingEvents(days = 7): Promise<CalendarEvent[]> {
-  const now = Date.now();
+/**
+ * Events on the primary calendar that overlap the time between `from` and
+ * `to`, soonest first. With no range given, that is the next 7 days.
+ */
+export async function getEvents(range?: { from: Date; to: Date }): Promise<CalendarEvent[]> {
+  const from = range?.from ?? new Date();
+  const to = range?.to ?? new Date(from.getTime() + 7 * DAY_MS);
 
   const params = new URLSearchParams({
-    timeMin: new Date(now).toISOString(),
-    timeMax: new Date(now + days * DAY_MS).toISOString(),
+    timeMin: from.toISOString(),
+    timeMax: to.toISOString(),
     // Expand "every Tuesday" into one item per Tuesday, which is also
     // what makes ordering by start time possible.
     singleEvents: "true",
     orderBy: "startTime",
-    maxResults: "25",
+    // Plenty for a month, and the most Google returns in one page.
+    maxResults: "250",
   });
 
   const body = await googleGet<{ items?: GoogleEvent[] }>(
