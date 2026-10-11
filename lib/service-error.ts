@@ -1,8 +1,9 @@
 import type { ApiErrorCode, ApiErrorResponse } from "./types";
 
 /**
- * A failure talking to an outside service (Canvas, Google, ...).
- * Its message is shown to the user, so never put secrets in it.
+ * Any failure an API route should report: an outside service that is down
+ * or not set up, or a request that was wrong. Its message is shown to the
+ * user, so never put secrets in it.
  */
 export class ServiceError extends Error {
   constructor(
@@ -18,6 +19,8 @@ const STATUS_BY_CODE: Record<ApiErrorCode, number> = {
   not_configured: 503,
   unauthorized: 502,
   upstream_error: 502,
+  invalid_request: 400,
+  not_found: 404,
 };
 
 /**

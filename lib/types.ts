@@ -68,7 +68,36 @@ export type WeatherResponse = {
   days: WeatherDay[];
 };
 
-export type ApiErrorCode = "not_configured" | "unauthorized" | "upstream_error";
+export type Project = {
+  id: string;
+  name: string;
+  /** ISO 8601 timestamp in UTC. */
+  createdAt: string;
+};
+
+export type Todo = {
+  id: string;
+  title: string;
+  done: boolean;
+  /** The project this belongs to, or null for a loose to-do. */
+  projectId: string | null;
+  /** ISO 8601 timestamps in UTC. `completedAt` is null until it is done. */
+  createdAt: string;
+  completedAt: string | null;
+};
+
+export type ProjectsResponse = { projects: Project[] };
+export type ProjectResponse = { project: Project };
+export type TodosResponse = { todos: Todo[] };
+export type TodoResponse = { todo: Todo };
+
+export type ApiErrorCode =
+  | "not_configured"
+  | "unauthorized"
+  | "upstream_error"
+  // The request itself was wrong: a missing title, a malformed body.
+  | "invalid_request"
+  | "not_found";
 
 export type ApiErrorResponse = {
   error: { code: ApiErrorCode; message: string };

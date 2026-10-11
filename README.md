@@ -1,9 +1,9 @@
 # Personal dashboard
 
-One calm screen with six sections. Three are live so far: **Classes &
-deadlines** (Canvas), **Calendar** (Google Calendar) and **Weather**
-(National Weather Service). The other three cards are placeholders for
-later phases.
+One calm screen with six sections. Four are live so far: **Classes &
+deadlines** (Canvas), **Calendar** (Google Calendar), **Weather**
+(National Weather Service) and **Projects & to-dos** (your own Supabase
+database). The other two cards are placeholders for later phases.
 
 ## Setup
 
@@ -87,6 +87,26 @@ WEATHER_LATITUDE=35.2226
 WEATHER_LONGITUDE=-97.4395
 ```
 
+## Connecting the database (Supabase)
+
+Projects and to-dos are your own data, stored in a free Supabase project.
+
+1. Go to https://supabase.com, sign in, and create a new project (any
+   name; pick a region near you). Wait for it to finish setting up.
+2. Open **SQL Editor**, paste in the contents of
+   [`supabase/schema.sql`](supabase/schema.sql), and click **Run**. This
+   creates the `projects` and `todos` tables.
+3. Open **Project Settings** and copy two values into `.env.local`:
+
+   | Variable              | Where to find it                                                        |
+   | --------------------- | ----------------------------------------------------------------------- |
+   | `SUPABASE_URL`        | **Data API → Project URL**, like `https://abcdefgh.supabase.co`.         |
+   | `SUPABASE_SECRET_KEY` | **API Keys → Secret keys** (starts with `sb_secret_`). Not the publishable key. |
+
+The secret key can read and write everything in the database, so it is
+only ever used on the server. The tables have Row Level Security turned on
+with no policies, which means the publishable key can do nothing at all.
+
 ## How it fits together
 
 ```
@@ -96,21 +116,29 @@ app/
   api/deadlines/route.ts   GET /api/deadlines (Canvas)
   api/events/route.ts      GET /api/events (Google Calendar)
   api/weather/route.ts     GET /api/weather (National Weather Service)
+  api/todos/               list, add, edit and delete to-dos
+  api/projects/            list, add, rename and delete projects
 components/
   Card.tsx                 shared card frame and empty-state message
   DeadlinesCard.tsx        renders /api/deadlines
   CalendarCard.tsx         renders /api/events, grouped by day
   WeatherCard.tsx          renders /api/weather
+  TodosCard.tsx            a plain list from /api/todos (design comes later)
 lib/
   canvas.ts                server-only Canvas client (reads the token)
   google-calendar.ts       server-only Google client (reads the tokens)
   weather.ts               server-only weather client (no key needed)
+  supabase.ts              server-only database client (reads the secret key)
+  todos.ts                 rules and queries for projects and to-dos
+  request.ts               helpers for reading request bodies and ids
   service-error.ts         one error type and JSON error shape for all routes
   use-api.ts               the loading / error / ready hook every card uses
   relative-time.ts         "tomorrow", "in 3 days", local-date parsing
   types.ts                 the JSON shapes our API returns
 scripts/
   google-auth.mjs          one-time Google sign-in (npm run google:auth)
+supabase/
+  schema.sql               the database tables, run once in Supabase
 ```
 
 Data flows one way: **service → `lib/<service>.ts` → `/api/...` → card**.
@@ -186,15 +214,73 @@ high and a low ahead, so in the evening it starts from tomorrow.
 }
 ```
 
+### Projects and to-dos
+
+Unlike the routes above, these also write. Send bodies as JSON with the
+header `Content-Type: application/json`.
+
+| Method and path            | Body                                    | Returns                    |
+| -------------------------- | --------------------------------------- | -------------------------- |
+| `GET /api/todos`           |                                         | `200` `{ "todos": [...] }` |
+| `GET /api/todos?done=false` |                                        | only unfinished (or `true`) |
+| `POST /api/todos`          | `{ "title", "projectId"? }`             | `201` `{ "todo": {...} }`  |
+| `PATCH /api/todos/:id`     | any of `{ "title", "done", "projectId" }` | `200` `{ "todo": {...} }` |
+| `DELETE /api/todos/:id`    |                                         | `204`, no body             |
+| `GET /api/projects`        |                                         | `200` `{ "projects": [...] }` |
+| `POST /api/projects`       | `{ "name" }`                            | `201` `{ "project": {...} }` |
+| `PATCH /api/projects/:id`  | `{ "name" }`                            | `200` `{ "project": {...} }` |
+| `DELETE /api/projects/:id` |                                         | `204`, no body             |
+
+A to-do and a project look like this:
+
+```json
+{
+  "id": "673b999e-3b50-4b9c-bf3b-648a9048626c",
+  "title": "Email advisor",
+  "done": false,
+  "projectId": null,
+  "createdAt": "2026-10-11T03:09:58.489Z",
+  "completedAt": null
+}
+```
+
+```json
+{
+  "id": "4ab6a6cc-ce96-4374-9bbb-16b85ca8c4c9",
+  "name": "Gylt",
+  "createdAt": "2026-10-11T03:09:57.423Z"
+}
+```
+
+- To-dos come back unfinished first, then oldest first.
+- `projectId` is optional. Use `null` for a to-do that belongs to no project.
+- Setting `done` to `true` fills in `completedAt`; setting it back clears it.
+- Deleting a project keeps its to-dos and sets their `projectId` to `null`.
+- Titles and names are trimmed and limited to 200 characters.
+
+Try it from a terminal while the dev server is running:
+
+```bash
+curl -X POST localhost:3000/api/todos \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Try the API"}'
+```
+
 ### Errors
 
-Every route fails the same way (`502` or `503`):
+Every route fails the same way:
 
 ```json
 { "error": { "code": "not_configured", "message": "…" } }
 ```
 
-`code` is one of `not_configured`, `unauthorized`, `upstream_error`.
+| `code`            | Status | Meaning                                              |
+| ----------------- | ------ | ---------------------------------------------------- |
+| `not_configured`  | `503`  | A value is missing from `.env.local`, or setup isn't finished. |
+| `unauthorized`    | `502`  | The outside service rejected our token or key.       |
+| `upstream_error`  | `502`  | The outside service is down or unreachable.          |
+| `invalid_request` | `400`  | The request was wrong, e.g. a missing `title`.       |
+| `not_found`       | `404`  | No to-do or project has that id.                     |
 
 ## Scripts
 
