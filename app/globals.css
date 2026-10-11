@@ -2,29 +2,21 @@
 
 /*
   The whole palette lives here. Components only use the names below
-  (bg-surface, text-muted, ...), so light and dark mode need no `dark:`
-  classes anywhere else: the variables simply change value.
+  (bg-surface, text-muted, ...), so changing a color means changing one line.
+
+  Black background, purple as the main accent, and a yellow-green used
+  sparingly for things that need attention now.
 */
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
 
-  --bg: #f7f7f5;
-  --surface: #ffffff;
-  --line: #e7e6e2;
-  --ink: #26251f;
-  --muted: #85837a;
-  --accent: #4a5fc1;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #131312;
-    --surface: #1b1b1a;
-    --line: #2b2b29;
-    --ink: #e9e8e3;
-    --muted: #8e8c84;
-    --accent: #95a3ee;
-  }
+  --bg: #000000;
+  --surface: #17171a;
+  --line: #26262b;
+  --ink: #f4f4f5;
+  --muted: #8c8c95;
+  --accent: #8b6cff;
+  --highlight: #d7f75b;
 }
 
 @theme inline {
@@ -34,10 +26,78 @@
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
+  --color-highlight: var(--highlight);
   --font-sans: var(--font-geist-sans);
 }
 
 body {
   background: var(--bg);
   color: var(--ink);
+}
+
+/*
+  react-grid-layout ships its own look for two things, both made for light
+  pages. These restyle them to match.
+*/
+
+/*
+  How sections glide: into place when you let go, and out of the way when
+  another section pushes them. The curve starts quickly and settles gently.
+  The section under your cursor ignores this and follows the mouse exactly.
+
+  Each selector starts with .react-grid-layout so that it outranks the
+  library's own rule for the same element.
+*/
+.react-grid-layout .react-grid-item {
+  transition-duration: 280ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.react-grid-layout .react-grid-item.resizing,
+.react-grid-layout .react-grid-item.react-draggable-dragging {
+  transition: none;
+}
+
+/*
+  The outline showing where a section will land when you let go. It can
+  only sit on grid steps, so it never exactly matches the section you are
+  holding. To keep that from looking wrong it is a faint outline rather
+  than a filled block, and it is drawn underneath the section.
+*/
+.react-grid-layout .react-grid-item.react-grid-placeholder {
+  background: transparent;
+  border: 1px dashed var(--muted);
+  border-radius: 0.75rem;
+  opacity: 0.5;
+  z-index: 0;
+  transition-duration: 100ms;
+}
+.react-grid-layout .react-grid-item.resizing,
+.react-grid-layout .react-grid-item.react-draggable-dragging {
+  z-index: 3;
+}
+
+/*
+  Dragging with the mouse normally selects text. Turn that off on the
+  resize grip, and everywhere while a section is being moved or resized.
+  (Safari still needs the -webkit- spelling.)
+*/
+.react-grid-item > .react-resizable-handle,
+body:has(.react-grid-item.resizing),
+body:has(.react-grid-item.react-draggable-dragging) {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* The resize grip in a section's bottom-right corner. */
+.react-grid-item > .react-resizable-handle {
+  background-image: none;
+}
+.react-grid-item > .react-resizable-handle::after {
+  right: 6px;
+  bottom: 6px;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  border-bottom-right-radius: 3px;
 }

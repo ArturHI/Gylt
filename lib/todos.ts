@@ -8,12 +8,15 @@ import { supabaseRequest } from "./supabase";
 import type { Project, Todo } from "./types";
 
 const MAX_TEXT_LENGTH = 200;
+const MAX_NOTE_LENGTH = 2000;
 
 // Rows as the database stores them: snake_case column names.
 type ProjectRow = { id: string; name: string; created_at: string };
 type TodoRow = {
   id: string;
   title: string;
+  // Missing on a database that hasn't run supabase/add-todo-notes.sql yet.
+  note?: string | null;
   done: boolean;
   project_id: string | null;
   created_at: string;
@@ -31,6 +34,7 @@ function toTodo(row: TodoRow): Todo {
   return {
     id: row.id,
     title: row.title,
+    note: row.note ?? null,
     done: row.done,
     projectId: row.project_id,
     createdAt: new Date(row.created_at).toISOString(),
@@ -52,6 +56,22 @@ function readText(value: unknown, field: string): string {
     );
   }
   return text;
+}
+
+/** A note is optional: null or blank text both mean "no note". */
+function readNote(value: unknown): string | null {
+  if (value === null) return null;
+  if (typeof value !== "string") {
+    throw new ServiceError("invalid_request", '"note" should be text or null.');
+  }
+  const note = value.trim();
+  if (note.length > MAX_NOTE_LENGTH) {
+    throw new ServiceError(
+      "invalid_request",
+      `"note" should be ${MAX_NOTE_LENGTH} characters or fewer.`,
+    );
+  }
+  return note === "" ? null : note;
 }
 
 function readProjectId(value: unknown): string | null {
@@ -125,22 +145,27 @@ export async function listTodos(filter: { done?: boolean } = {}): Promise<Todo[]
 }
 
 export async function createTodo(input: Input): Promise<Todo> {
+  const note = input.note === undefined ? null : readNote(input.note);
+
   const [row] = await supabaseRequest<TodoRow>("todos", {
     method: "POST",
     body: {
       title: readText(input.title, "title"),
       // "projectId" is optional; leaving it out means a loose to-do.
       project_id: input.projectId === undefined ? null : readProjectId(input.projectId),
+      // Only mention the note column when there is a note to store.
+      ...(note === null ? {} : { note }),
     },
   });
   return toTodo(row);
 }
 
-/** Changes any of title, done and projectId. Fields left out stay as they are. */
+/** Changes any of title, note, done and projectId. Fields left out stay as they are. */
 export async function updateTodo(id: string, input: Input): Promise<Todo> {
   const changes: Partial<TodoRow> = {};
 
   if (input.title !== undefined) changes.title = readText(input.title, "title");
+  if (input.note !== undefined) changes.note = readNote(input.note);
   if (input.projectId !== undefined) changes.project_id = readProjectId(input.projectId);
   if (input.done !== undefined) {
     if (typeof input.done !== "boolean") {
@@ -152,7 +177,7 @@ export async function updateTodo(id: string, input: Input): Promise<Todo> {
   }
 
   if (Object.keys(changes).length === 0) {
-    throw new ServiceError("invalid_request", 'Send at least one of "title", "done" or "projectId".');
+    throw new ServiceError("invalid_request", 'Send at least one of "title", "note", "done" or "projectId".');
   }
 
   const rows = await supabaseRequest<TodoRow>("todos", {

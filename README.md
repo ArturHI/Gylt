@@ -11,6 +11,20 @@ One calm screen with six sections, all backed by live data:
 | Email               | Gmail, plus OU mail forwarded into it         |
 | Spanish             | Duolingo streak                               |
 
+## Using the dashboard
+
+- **Move a section:** drag it by its title.
+- **Resize a section:** drag the small purple corner at its bottom right.
+- **Reset layout** (top right) puts everything back where it started.
+- **Email:** the two buttons in the card's corner switch between personal
+  mail (house) and school mail (briefcase).
+- **To-dos:** the round **+** button adds one, with an optional note. Tick
+  its checkbox to mark it done. Each shows as a single line; click it to
+  read the whole thing and to add or change its note.
+
+Your arrangement is saved in the browser you made it in, separately for
+wide and medium windows. On a phone the sections are stacked and fixed.
+
 ## Setup
 
 You need Node.js 20.12 or newer.
@@ -142,6 +156,9 @@ Projects and to-dos are your own data, stored in a free Supabase project.
 2. Open **SQL Editor**, paste in the contents of
    [`supabase/schema.sql`](supabase/schema.sql), and click **Run**. This
    creates the `projects` and `todos` tables.
+
+   If you created your tables before to-do notes existed, also run
+   [`supabase/add-todo-notes.sql`](supabase/add-todo-notes.sql) once.
 3. Open **Project Settings** and copy two values into `.env.local`:
 
    | Variable              | Where to find it                                                        |
@@ -171,8 +188,8 @@ affected.
 
 ```
 app/
-  page.tsx                 the one screen: a grid of six cards
-  globals.css              the color palette (light and dark) as CSS variables
+  page.tsx                 the one screen
+  globals.css              the color palette as CSS variables
   api/deadlines/route.ts   GET /api/deadlines (Canvas)
   api/events/route.ts      GET /api/events (Google Calendar)
   api/weather/route.ts     GET /api/weather (National Weather Service)
@@ -181,12 +198,15 @@ app/
   api/todos/               list, add, edit and delete to-dos
   api/projects/            list, add, rename and delete projects
 components/
+  DashboardGrid.tsx        the movable, resizable grid; saves your layout
   Card.tsx                 shared card frame and empty-state message
+  icons.tsx                the house, briefcase and plus icons
   DeadlinesCard.tsx        renders /api/deadlines
   CalendarCard.tsx         renders /api/events, grouped by day
   WeatherCard.tsx          renders /api/weather
-  TodosCard.tsx            a plain list from /api/todos (design comes later)
-  EmailCard.tsx            a plain list from /api/emails (design comes later)
+  TodosCard.tsx            to-do bullets, the add button and its dialogs
+  Dialog.tsx               a centered pop-up, built on the <dialog> element
+  EmailCard.tsx            /api/emails with a personal / school toggle
   SpanishCard.tsx          plain streak text from /api/duolingo (design comes later)
 lib/
   canvas.ts                server-only Canvas client (reads the token)
@@ -199,13 +219,14 @@ lib/
   todos.ts                 rules and queries for projects and to-dos
   request.ts               helpers for reading request bodies and ids
   service-error.ts         one error type and JSON error shape for all routes
-  use-api.ts               the loading / error / ready hook every card uses
+  use-api.ts               the loading / error / ready hook every card uses, with reload
   relative-time.ts         "tomorrow", "in 3 days", local-date parsing
   types.ts                 the JSON shapes our API returns
 scripts/
   google-auth.mjs          one-time Google sign-in (npm run google:auth)
 supabase/
   schema.sql               the database tables, run once in Supabase
+  add-todo-notes.sql       adds the note column to an older database
 ```
 
 Data flows one way: **service → `lib/<service>.ts` → `/api/...` → card**.
@@ -329,8 +350,8 @@ header `Content-Type: application/json`.
 | -------------------------- | --------------------------------------- | -------------------------- |
 | `GET /api/todos`           |                                         | `200` `{ "todos": [...] }` |
 | `GET /api/todos?done=false` |                                        | only unfinished (or `true`) |
-| `POST /api/todos`          | `{ "title", "projectId"? }`             | `201` `{ "todo": {...} }`  |
-| `PATCH /api/todos/:id`     | any of `{ "title", "done", "projectId" }` | `200` `{ "todo": {...} }` |
+| `POST /api/todos`          | `{ "title", "note"?, "projectId"? }`    | `201` `{ "todo": {...} }`  |
+| `PATCH /api/todos/:id`     | any of `{ "title", "note", "done", "projectId" }` | `200` `{ "todo": {...} }` |
 | `DELETE /api/todos/:id`    |                                         | `204`, no body             |
 | `GET /api/projects`        |                                         | `200` `{ "projects": [...] }` |
 | `POST /api/projects`       | `{ "name" }`                            | `201` `{ "project": {...} }` |
@@ -343,6 +364,7 @@ A to-do and a project look like this:
 {
   "id": "673b999e-3b50-4b9c-bf3b-648a9048626c",
   "title": "Email advisor",
+  "note": null,
   "done": false,
   "projectId": null,
   "createdAt": "2026-10-11T03:09:58.489Z",
@@ -363,6 +385,8 @@ A to-do and a project look like this:
 - Setting `done` to `true` fills in `completedAt`; setting it back clears it.
 - Deleting a project keeps its to-dos and sets their `projectId` to `null`.
 - Titles and names are trimmed and limited to 200 characters.
+- `note` is optional text up to 2,000 characters. Send `null` or an empty
+  string to remove it.
 
 Try it from a terminal while the dev server is running:
 

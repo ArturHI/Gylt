@@ -10,6 +10,8 @@ create table public.projects (
 create table public.todos (
   id uuid primary key default gen_random_uuid(),
   title text not null check (char_length(title) between 1 and 200),
+  -- Optional extra detail. Null when there is none.
+  note text check (char_length(note) <= 2000),
   done boolean not null default false,
   -- A to-do may belong to a project. Deleting the project keeps its
   -- to-dos and just unlinks them.

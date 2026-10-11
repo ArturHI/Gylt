@@ -3,7 +3,8 @@ import { toErrorResponse } from "@/lib/service-error";
 import { deleteTodo, updateTodo } from "@/lib/todos";
 import type { TodoResponse } from "@/lib/types";
 
-// PATCH /api/todos/:id   any of { "title": "...", "done": true, "projectId": "..." | null }
+// PATCH /api/todos/:id
+// any of { "title": "...", "note": "..." | null, "done": true, "projectId": "..." | null }
 export async function PATCH(request: Request, context: RouteContext<"/api/todos/[id]">) {
   try {
     const { id } = await context.params;

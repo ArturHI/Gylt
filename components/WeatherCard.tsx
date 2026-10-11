@@ -9,7 +9,7 @@ import { type ApiState, useApi } from "@/lib/use-api";
 const LIKELY_PRECIPITATION = 50;
 
 export function WeatherCard() {
-  const state = useApi<WeatherResponse>("/api/weather");
+  const { state } = useApi<WeatherResponse>("/api/weather");
 
   return (
     <Card title="Weather">

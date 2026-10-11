@@ -24,7 +24,7 @@ export async function GET(request: Request) {
   }
 }
 
-// POST /api/todos   { "title": "...", "projectId": "..." (optional) }
+// POST /api/todos   { "title": "...", "note": "..." (optional), "projectId": "..." (optional) }
 export async function POST(request: Request) {
   try {
     const todo = await createTodo(await readJsonObject(request));

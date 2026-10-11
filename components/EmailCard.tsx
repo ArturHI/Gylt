@@ -1,30 +1,72 @@
 "use client";
 
-// Deliberately plain: a read-only list that proves the API works.
-// The real layout waits for the redesign.
+import { useState } from "react";
 
 import { Card, CardMessage } from "@/components/Card";
-import type { EmailsResponse } from "@/lib/types";
+import { BriefcaseIcon, HomeIcon } from "@/components/icons";
+import type { EmailsResponse, EmailSummary } from "@/lib/types";
 import { type ApiState, useApi } from "@/lib/use-api";
 
 const MAX_SHOWN = 5;
 
+type Account = EmailSummary["account"];
+
+const ACCOUNTS = [
+  { id: "gmail", label: "Personal email", Icon: HomeIcon, empty: "No unread personal email." },
+  { id: "ou", label: "School email", Icon: BriefcaseIcon, empty: "No school email in the last 3 days." },
+] as const;
+
 export function EmailCard() {
-  const state = useApi<EmailsResponse>("/api/emails");
+  // One request brings back both mailboxes. The toggle only chooses which
+  // of them to show, so switching is instant.
+  const { state } = useApi<EmailsResponse>("/api/emails");
+  const [account, setAccount] = useState<Account>("gmail");
 
   return (
-    <Card title="Email">
-      <EmailBody state={state} />
+    <Card title="Email" actions={<AccountToggle selected={account} onSelect={setAccount} />}>
+      <EmailBody state={state} account={account} />
     </Card>
   );
 }
 
-function EmailBody({ state }: { state: ApiState<EmailsResponse> }) {
+function AccountToggle({
+  selected,
+  onSelect,
+}: {
+  selected: Account;
+  onSelect: (account: Account) => void;
+}) {
+  return (
+    <div className="flex rounded-full bg-line p-0.5">
+      {ACCOUNTS.map(({ id, label, Icon }) => (
+        <button
+          key={id}
+          type="button"
+          // The icons have no visible text, so screen readers and the hover
+          // tooltip get the label, and aria-pressed says which one is on.
+          aria-label={label}
+          aria-pressed={selected === id}
+          title={label}
+          onClick={() => onSelect(id)}
+          className={`rounded-full p-1.5 transition-colors ${
+            selected === id ? "bg-accent text-white" : "text-muted hover:text-ink"
+          }`}
+        >
+          <Icon className="size-4" />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function EmailBody({ state, account }: { state: ApiState<EmailsResponse>; account: Account }) {
   if (state.status === "loading") return <CardMessage>Loading…</CardMessage>;
   if (state.status === "error") return <CardMessage>{state.message}</CardMessage>;
 
-  const { emails } = state.data;
-  if (emails.length === 0) return <CardMessage>No new email.</CardMessage>;
+  const emails = state.data.emails.filter((email) => email.account === account);
+  if (emails.length === 0) {
+    return <CardMessage>{ACCOUNTS.find(({ id }) => id === account)!.empty}</CardMessage>;
+  }
 
   return (
     <ul className="flex flex-col gap-2">
@@ -33,10 +75,7 @@ function EmailBody({ state }: { state: ApiState<EmailsResponse> }) {
           <a href={email.url} target="_blank" rel="noreferrer" className="block truncate hover:underline">
             {email.subject}
           </a>
-          <span className="block truncate text-xs text-muted">
-            {email.account === "ou" ? "OU · " : ""}
-            {email.from}
-          </span>
+          <span className="block truncate text-xs text-muted">{email.from}</span>
         </li>
       ))}
     </ul>

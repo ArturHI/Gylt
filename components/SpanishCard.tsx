@@ -9,7 +9,7 @@ import type { DuolingoResponse } from "@/lib/types";
 import { type ApiState, useApi } from "@/lib/use-api";
 
 export function SpanishCard() {
-  const state = useApi<DuolingoResponse>("/api/duolingo");
+  const { state } = useApi<DuolingoResponse>("/api/duolingo");
 
   return (
     <Card title="Spanish">

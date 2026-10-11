@@ -92,6 +92,13 @@ async function toServiceError(response: Response): Promise<ServiceError> {
       "The database tables aren't set up yet. Run supabase/schema.sql in the Supabase SQL editor.",
     );
   }
+  if (code === "PGRST204" || code === "42703") {
+    // The table exists but lacks a column that was added in a later update.
+    return new ServiceError(
+      "not_configured",
+      "The database needs a small update. Run supabase/add-todo-notes.sql in the Supabase SQL editor.",
+    );
+  }
   if (response.status === 401 || response.status === 403) {
     return new ServiceError("unauthorized", "Supabase rejected the secret key.");
   }

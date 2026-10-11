@@ -111,6 +111,8 @@ export type Project = {
 export type Todo = {
   id: string;
   title: string;
+  /** Optional extra detail, or null when there is none. */
+  note: string | null;
   done: boolean;
   /** The project this belongs to, or null for a loose to-do. */
   projectId: string | null;

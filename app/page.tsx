@@ -1,23 +1,10 @@
-import { CalendarCard } from "@/components/CalendarCard";
-import { DeadlinesCard } from "@/components/DeadlinesCard";
-import { EmailCard } from "@/components/EmailCard";
-import { SpanishCard } from "@/components/SpanishCard";
-import { TodosCard } from "@/components/TodosCard";
-import { WeatherCard } from "@/components/WeatherCard";
+import { DashboardGrid } from "@/components/DashboardGrid";
 
 export default function Home() {
+  // No maximum width: the grid runs to the edges of the window.
   return (
-    <main className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-8 sm:py-16">
-      <h1 className="text-base font-medium">Dashboard</h1>
-
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <DeadlinesCard />
-        <CalendarCard />
-        <WeatherCard />
-        <TodosCard />
-        <EmailCard />
-        <SpanishCard />
-      </div>
+    <main className="w-full p-4 sm:p-6">
+      <DashboardGrid />
     </main>
   );
 }

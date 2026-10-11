@@ -15,7 +15,7 @@ const MAX_SHOWN = 5;
 const SOON_HOURS = 48;
 
 export function DeadlinesCard() {
-  const state = useApi<DeadlinesResponse>("/api/deadlines");
+  const { state } = useApi<DeadlinesResponse>("/api/deadlines");
 
   return (
     <Card title="Classes & deadlines">

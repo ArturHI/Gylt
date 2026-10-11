@@ -11,7 +11,7 @@ import { type ApiState, useApi } from "@/lib/use-api";
 const MAX_SHOWN = 5;
 
 export function CalendarCard() {
-  const state = useApi<EventsResponse>("/api/events");
+  const { state } = useApi<EventsResponse>("/api/events");
 
   return (
     <Card title="Calendar">

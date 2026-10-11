@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { ApiErrorResponse } from "./types";
 
@@ -10,11 +10,16 @@ export type ApiState<T> =
   | { status: "ready"; data: T };
 
 /**
- * Loads one of our own API routes once, when the component first appears.
+ * Loads one of our own API routes when the component first appears.
  * Every card goes through this, so they all load and fail the same way.
+ *
+ * `reload` fetches again, for after the card has changed something. The
+ * old data stays on screen until the new data arrives, so nothing flickers.
  */
-export function useApi<T extends object>(path: string): ApiState<T> {
+export function useApi<T extends object>(path: string): { state: ApiState<T>; reload: () => void } {
   const [state, setState] = useState<ApiState<T>>({ status: "loading" });
+  // The effect below re-runs whenever this number changes.
+  const [reloadCount, setReloadCount] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -42,7 +47,9 @@ export function useApi<T extends object>(path: string): ApiState<T> {
     return () => {
       cancelled = true;
     };
-  }, [path]);
+  }, [path, reloadCount]);
 
-  return state;
+  const reload = useCallback(() => setReloadCount((count) => count + 1), []);
+
+  return { state, reload };
 }
