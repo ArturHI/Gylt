@@ -1,9 +1,10 @@
 # Personal dashboard
 
-One calm screen with six sections. Four are live so far: **Classes &
+One calm screen with six sections. Five are live so far: **Classes &
 deadlines** (Canvas), **Calendar** (Google Calendar), **Weather**
-(National Weather Service) and **Projects & to-dos** (your own Supabase
-database). The other two cards are placeholders for later phases.
+(National Weather Service), **Projects & to-dos** (your own Supabase
+database) and **Email** (Gmail, plus OU mail forwarded into it). The last
+card is a placeholder.
 
 ## Setup
 
@@ -76,6 +77,46 @@ calendar. Use the Google account whose calendar you want to see.
 The app asks only for `calendar.events.readonly`: it can read events and
 cannot change anything. It shows your primary calendar.
 
+## Connecting Gmail
+
+Gmail uses the same Google project and sign-in as the calendar, so set
+that up first. Then:
+
+1. In https://console.cloud.google.com, open **APIs & Services → Library**,
+   search for **Gmail API**, and click **Enable**.
+2. Run the sign-in again so Google asks for the extra permission:
+
+   ```bash
+   npm run google:auth
+   ```
+
+   The consent screen now lists two items. Make sure both boxes are ticked.
+
+The Gmail permission is `gmail.metadata`: the app can see senders,
+subjects and labels, and cannot read the body of any message. The Email
+card shows unread inbox mail, leaving out Gmail's Promotions and Social
+categories.
+
+### School mail (OU Outlook)
+
+OU does not let students connect their own apps to school mail, so the
+dashboard reads it through Gmail instead:
+
+1. In Outlook on the web, open **Settings → Mail → Forwarding** and forward
+   to your Gmail address with `+ou` added before the `@`, for example
+   `yourname+ou@gmail.com`. Keep "Keep a copy of forwarded messages" ticked.
+   Gmail delivers plus addresses to your normal mailbox.
+2. In Gmail, open **Settings → See all settings → Filters and Blocked
+   Addresses → Create a new filter**. In **Has the words**, enter
+   `deliveredto:yourname+ou@gmail.com`, then click **Create filter**.
+3. Tick **Skip the Inbox** and **Apply the label**, create a new label
+   named exactly `OU`, and save.
+
+School mail now stays out of your Gmail inbox, under the OU label. The
+dashboard shows OU mail from the last three days (reading a message in
+Outlook cannot mark its forwarded copy as read, so "unread" would be
+misleading).
+
 ## Weather
 
 Weather needs no setup. It comes from the National Weather Service, which
@@ -116,6 +157,7 @@ app/
   api/deadlines/route.ts   GET /api/deadlines (Canvas)
   api/events/route.ts      GET /api/events (Google Calendar)
   api/weather/route.ts     GET /api/weather (National Weather Service)
+  api/emails/route.ts      GET /api/emails (Gmail)
   api/todos/               list, add, edit and delete to-dos
   api/projects/            list, add, rename and delete projects
 components/
@@ -124,9 +166,12 @@ components/
   CalendarCard.tsx         renders /api/events, grouped by day
   WeatherCard.tsx          renders /api/weather
   TodosCard.tsx            a plain list from /api/todos (design comes later)
+  EmailCard.tsx            a plain list from /api/emails (design comes later)
 lib/
   canvas.ts                server-only Canvas client (reads the token)
-  google-calendar.ts       server-only Google client (reads the tokens)
+  google-auth.ts           server-only Google sign-in (reads the tokens)
+  google-calendar.ts       Google Calendar client
+  gmail.ts                 Gmail client (headers only, never message bodies)
   weather.ts               server-only weather client (no key needed)
   supabase.ts              server-only database client (reads the secret key)
   todos.ts                 rules and queries for projects and to-dos
@@ -209,6 +254,29 @@ high and a low ahead, so in the evening it starts from tomorrow.
       "low": 17,
       "summary": "Sunny",
       "precipitationChance": 0
+    }
+  ]
+}
+```
+
+### `GET /api/emails`
+
+Newest first (`200`): up to 10 unread Gmail inbox messages, without
+promotions or social mail, plus up to 10 school messages from the last
+three days. `account` is `"gmail"` or `"ou"`.
+
+```json
+{
+  "emails": [
+    {
+      "id": "19a2b3c4d5e6f708",
+      "account": "gmail",
+      "unread": true,
+      "from": "Ada Lovelace",
+      "fromAddress": "ada@example.com",
+      "subject": "Office hours moved",
+      "receivedAt": "2026-10-11T02:15:00.000Z",
+      "url": "https://mail.google.com/mail/#all/19a2b3c4d5e6f708"
     }
   ]
 }

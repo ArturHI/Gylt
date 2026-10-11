@@ -68,6 +68,28 @@ export type WeatherResponse = {
   days: WeatherDay[];
 };
 
+export type EmailSummary = {
+  id: string;
+  /**
+   * "ou" is school mail, forwarded into Gmail under the "OU" label.
+   * "gmail" is everything else.
+   */
+  account: "gmail" | "ou";
+  unread: boolean;
+  /** The sender's display name, or their address when they have none. */
+  from: string;
+  fromAddress: string;
+  subject: string;
+  /** ISO 8601 timestamp in UTC. */
+  receivedAt: string;
+  /** Opens the message in the mail provider's own site. */
+  url: string;
+};
+
+export type EmailsResponse = {
+  emails: EmailSummary[];
+};
+
 export type Project = {
   id: string;
   name: string;

@@ -15,8 +15,15 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 
 const ENV_FILE = ".env.local";
-// Read-only access to events. The dashboard never needs to change anything.
-const SCOPE = "https://www.googleapis.com/auth/calendar.events.readonly";
+// Everything the dashboard may do with your Google account. Both are
+// read-only, and the Gmail one cannot open message bodies at all.
+// After changing this list, run the script again to grant the new access.
+const SCOPES = [
+  // Calendar: read events.
+  "https://www.googleapis.com/auth/calendar.events.readonly",
+  // Gmail: read senders, subjects and labels only.
+  "https://www.googleapis.com/auth/gmail.metadata",
+];
 
 function fail(message) {
   console.error(`\n${message}\n`);
@@ -77,7 +84,8 @@ server.listen(0, "127.0.0.1", () => {
     client_id: clientId,
     redirect_uri: redirectUri(),
     response_type: "code",
-    scope: SCOPE,
+    // Google expects the list as one string separated by spaces.
+    scope: SCOPES.join(" "),
     state,
     // "offline" + "consent" together make Google issue a refresh token.
     access_type: "offline",
