@@ -17,6 +17,8 @@
   --muted: #8c8c95;
   --accent: #8b6cff;
   --highlight: #d7f75b;
+  /* Reserved for destructive actions, like deleting. */
+  --danger: #f2555a;
 }
 
 @theme inline {
@@ -27,6 +29,7 @@
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-highlight: var(--highlight);
+  --color-danger: var(--danger);
   --font-sans: var(--font-geist-sans);
 }
 

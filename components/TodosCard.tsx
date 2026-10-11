@@ -12,6 +12,12 @@ import { type ApiState, useApi } from "@/lib/use-api";
 const MAX_TITLE_LENGTH = 200;
 const MAX_NOTE_LENGTH = 2000;
 
+// The three kinds of button the dialogs use, so they all match.
+const BUTTON = "rounded-full px-4 py-1.5 font-medium transition-colors disabled:opacity-40";
+const BUTTON_PRIMARY = `${BUTTON} bg-accent text-white hover:opacity-85`;
+const BUTTON_SECONDARY = `${BUTTON} border border-line text-ink hover:border-muted`;
+const BUTTON_DANGER = `${BUTTON} bg-danger text-white hover:opacity-85`;
+
 /** Which dialog is showing, if any. */
 type OpenDialog = { kind: "add" } | { kind: "view"; todo: Todo } | null;
 
@@ -20,16 +26,19 @@ type OpenDialog = { kind: "add" } | { kind: "view"; todo: Todo } | null;
  * message to show the user when it didn't.
  */
 async function sendTodo(
-  method: "POST" | "PATCH",
+  method: "POST" | "PATCH" | "DELETE",
   path: string,
-  body: Record<string, unknown>,
+  body?: Record<string, unknown>,
 ): Promise<string | null> {
   try {
     const response = await fetch(path, {
       method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      headers: body ? { "Content-Type": "application/json" } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
     });
+    // A successful delete answers 204 "No Content": there is no JSON to read.
+    if (response.status === 204) return null;
+
     const result: TodoResponse | ApiErrorResponse = await response.json();
     return "error" in result ? result.error.message : null;
   } catch {
@@ -190,15 +199,11 @@ function AddTodoForm({ onCancel, onSaved }: { onCancel: () => void; onSaved: () 
       <NoteField value={note} onChange={setNote} />
       {error && <p className="mt-2 text-xs text-accent">{error}</p>}
 
-      <div className="mt-5 flex justify-end gap-4">
-        <button type="button" onClick={onCancel} className="text-muted hover:text-ink">
+      <div className="mt-5 flex justify-end gap-2">
+        <button type="button" onClick={onCancel} className={BUTTON_SECONDARY}>
           Cancel
         </button>
-        <button
-          type="submit"
-          disabled={saving || title.trim() === ""}
-          className="rounded-full bg-accent px-4 py-1.5 font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-40"
-        >
+        <button type="submit" disabled={saving || title.trim() === ""} className={BUTTON_PRIMARY}>
           {saving ? "Adding…" : "Add"}
         </button>
       </div>
@@ -220,18 +225,55 @@ function TodoDetails({
   const [note, setNote] = useState(savedNote);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
-  async function handleSubmit(event: React.FormEvent) {
-    event.preventDefault();
+  /** Runs a change, then closes the dialog, or shows what went wrong. */
+  async function run(change: Promise<string | null>) {
     setSaving(true);
-
-    const problem = await sendTodo("PATCH", `/api/todos/${todo.id}`, { note });
+    const problem = await change;
     if (problem) {
       setError(problem);
       setSaving(false);
     } else {
       onSaved();
     }
+  }
+
+  function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    run(sendTodo("PATCH", `/api/todos/${todo.id}`, { note }));
+  }
+
+  // Deleting cannot be undone, so it gets its own confirmation step with
+  // the wording people know from other apps.
+  if (confirmingDelete) {
+    return (
+      <div>
+        <p className="truncate text-muted">{todo.title}</p>
+        <p className="mt-5 font-medium">Delete this to-do?</p>
+        <p className="mt-1 text-xs text-muted">This action cannot be undone.</p>
+        {error && <p className="mt-2 text-xs text-danger">{error}</p>}
+
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setConfirmingDelete(false)}
+            disabled={saving}
+            className={BUTTON_SECONDARY}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => run(sendTodo("DELETE", `/api/todos/${todo.id}`))}
+            disabled={saving}
+            className={BUTTON_DANGER}
+          >
+            {saving ? "Deleting…" : "Delete"}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -242,15 +284,24 @@ function TodoDetails({
       <NoteField value={note} onChange={setNote} />
       {error && <p className="mt-2 text-xs text-accent">{error}</p>}
 
-      <div className="mt-5 flex justify-end gap-4">
-        <button type="button" onClick={onClose} className="text-muted hover:text-ink">
+      <div className="mt-5 flex items-center gap-2">
+        {/* mr-auto pushes this to the left, away from the other buttons. */}
+        <button
+          type="button"
+          onClick={() => setConfirmingDelete(true)}
+          disabled={saving}
+          className={`${BUTTON_SECONDARY} mr-auto hover:border-danger hover:text-danger`}
+        >
+          Delete
+        </button>
+        <button type="button" onClick={onClose} className={BUTTON_SECONDARY}>
           Close
         </button>
         <button
           type="submit"
           // Nothing to save until the note differs from what is stored.
           disabled={saving || note.trim() === savedNote}
-          className="rounded-full bg-accent px-4 py-1.5 font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-40"
+          className={BUTTON_PRIMARY}
         >
           {saving ? "Saving…" : "Save note"}
         </button>

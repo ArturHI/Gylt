@@ -20,7 +20,7 @@ One calm screen with six sections, all backed by live data:
   mail (house) and school mail (briefcase).
 - **To-dos:** the round **+** button adds one, with an optional note. Tick
   its checkbox to mark it done. Each shows as a single line; click it to
-  read the whole thing and to add or change its note.
+  read the whole thing, add or change its note, or delete it.
 
 Your arrangement is saved in the browser you made it in, separately for
 wide and medium windows. On a phone the sections are stacked and fixed.
