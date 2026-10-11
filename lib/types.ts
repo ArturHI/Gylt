@@ -132,7 +132,9 @@ export type ApiErrorCode =
   | "upstream_error"
   // The request itself was wrong: a missing title, a malformed body.
   | "invalid_request"
-  | "not_found";
+  | "not_found"
+  // The dashboard password hasn't been entered, or the session ran out.
+  | "login_required";
 
 export type ApiErrorResponse = {
   error: { code: ApiErrorCode; message: string };

@@ -21,6 +21,7 @@ const STATUS_BY_CODE: Record<ApiErrorCode, number> = {
   upstream_error: 502,
   invalid_request: 400,
   not_found: 404,
+  login_required: 401,
 };
 
 /**

@@ -184,11 +184,46 @@ reads the same public profile endpoint its website uses. It is unofficial
 and may stop working without warning; if it does, only this card is
 affected.
 
+## Deploying to Vercel
+
+The dashboard shows private data and can change your to-dos, so a deployed
+copy is locked behind one password.
+
+1. Push the project to GitHub.
+2. At https://vercel.com, sign in with GitHub, choose **Add New → Project**,
+   and import the repository. Don't deploy yet.
+3. Open **Environment Variables** and add every value from your
+   `.env.local` (you can paste the whole file's contents into the first
+   field and Vercel splits it up), plus one new one:
+
+   | Variable             | Value                                             |
+   | -------------------- | ------------------------------------------------- |
+   | `DASHBOARD_PASSWORD` | A long password you don't use anywhere else.      |
+
+4. Click **Deploy**. Open the address Vercel gives you and sign in.
+
+How the lock works:
+
+- `proxy.ts` runs before every page and API route and turns away anyone
+  without a valid session cookie.
+- `/login` checks the password and sets that cookie. It lasts 30 days, is
+  signed so it can't be forged, and can't be read by page scripts.
+- Changing `DASHBOARD_PASSWORD` signs out every device.
+- Without the variable, a deployed site refuses all requests. On your own
+  machine `npm run dev` simply has no login.
+
+After changing any environment variable on Vercel (a renewed Canvas token,
+a new Google refresh token), redeploy for it to take effect.
+
 ## How it fits together
 
 ```
+proxy.ts                   the password gate in front of everything
 app/
   page.tsx                 the one screen
+  login/page.tsx           the sign-in page
+  privacy/page.tsx         a public privacy note (Google requires one)
+  api/login/route.ts       POST /api/login, checks the password
   globals.css              the color palette as CSS variables
   api/deadlines/route.ts   GET /api/deadlines (Canvas)
   api/events/route.ts      GET /api/events (Google Calendar)
@@ -218,6 +253,7 @@ lib/
   supabase.ts              server-only database client (reads the secret key)
   todos.ts                 rules and queries for projects and to-dos
   request.ts               helpers for reading request bodies and ids
+  session.ts               password check and the signed session cookie
   service-error.ts         one error type and JSON error shape for all routes
   use-api.ts               the loading / error / ready hook every card uses, with reload
   relative-time.ts         "tomorrow", "in 3 days", local-date parsing
@@ -411,6 +447,7 @@ Every route fails the same way:
 | `upstream_error`  | `502`  | The outside service is down or unreachable.          |
 | `invalid_request` | `400`  | The request was wrong, e.g. a missing `title`.       |
 | `not_found`       | `404`  | No to-do or project has that id.                     |
+| `login_required`  | `401`  | Not signed in, or the wrong password.                |
 
 ## Scripts
 
