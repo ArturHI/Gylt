@@ -1,15 +1,9 @@
 import { CalendarCard } from "@/components/CalendarCard";
-import { Card, CardMessage } from "@/components/Card";
 import { DeadlinesCard } from "@/components/DeadlinesCard";
 import { EmailCard } from "@/components/EmailCard";
+import { SpanishCard } from "@/components/SpanishCard";
 import { TodosCard } from "@/components/TodosCard";
 import { WeatherCard } from "@/components/WeatherCard";
-
-// Sections that are not built yet. Each becomes its own component, like
-// DeadlinesCard, when its phase comes around.
-const PLACEHOLDERS = [
-  { title: "Spanish", note: "A little daily practice, later." },
-];
 
 export default function Home() {
   return (
@@ -22,11 +16,7 @@ export default function Home() {
         <WeatherCard />
         <TodosCard />
         <EmailCard />
-        {PLACEHOLDERS.map(({ title, note }) => (
-          <Card key={title} title={title}>
-            <CardMessage>{note}</CardMessage>
-          </Card>
-        ))}
+        <SpanishCard />
       </div>
     </main>
   );

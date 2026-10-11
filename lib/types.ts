@@ -90,6 +90,17 @@ export type EmailsResponse = {
   emails: EmailSummary[];
 };
 
+export type DuolingoResponse = {
+  username: string;
+  /** Length of the current streak in days. 0 when there is none. */
+  streak: number;
+  /**
+   * The last day that counts toward the streak, like "2026-10-10", or null
+   * with no streak. When it equals today's date, today is done.
+   */
+  lastStreakDate: string | null;
+};
+
 export type Project = {
   id: string;
   name: string;

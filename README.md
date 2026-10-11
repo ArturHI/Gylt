@@ -1,10 +1,15 @@
 # Personal dashboard
 
-One calm screen with six sections. Five are live so far: **Classes &
-deadlines** (Canvas), **Calendar** (Google Calendar), **Weather**
-(National Weather Service), **Projects & to-dos** (your own Supabase
-database) and **Email** (Gmail, plus OU mail forwarded into it). The last
-card is a placeholder.
+One calm screen with six sections, all backed by live data:
+
+| Section             | Source                                        |
+| ------------------- | --------------------------------------------- |
+| Classes & deadlines | Canvas                                        |
+| Calendar            | Google Calendar                               |
+| Weather             | National Weather Service                      |
+| Projects & to-dos   | Your own Supabase database                    |
+| Email               | Gmail, plus OU mail forwarded into it         |
+| Spanish             | Duolingo streak                               |
 
 ## Setup
 
@@ -148,6 +153,20 @@ The secret key can read and write everything in the database, so it is
 only ever used on the server. The tables have Row Level Security turned on
 with no policies, which means the publishable key can do nothing at all.
 
+## Duolingo streak
+
+Add your Duolingo username to `.env.local`. It is the last part of your
+profile link, `duolingo.com/profile/<username>`:
+
+```
+DUOLINGO_USERNAME=yourname
+```
+
+No password or token is involved. Duolingo has no official API, so this
+reads the same public profile endpoint its website uses. It is unofficial
+and may stop working without warning; if it does, only this card is
+affected.
+
 ## How it fits together
 
 ```
@@ -158,6 +177,7 @@ app/
   api/events/route.ts      GET /api/events (Google Calendar)
   api/weather/route.ts     GET /api/weather (National Weather Service)
   api/emails/route.ts      GET /api/emails (Gmail)
+  api/duolingo/route.ts    GET /api/duolingo (Duolingo streak)
   api/todos/               list, add, edit and delete to-dos
   api/projects/            list, add, rename and delete projects
 components/
@@ -167,12 +187,14 @@ components/
   WeatherCard.tsx          renders /api/weather
   TodosCard.tsx            a plain list from /api/todos (design comes later)
   EmailCard.tsx            a plain list from /api/emails (design comes later)
+  SpanishCard.tsx          plain streak text from /api/duolingo (design comes later)
 lib/
   canvas.ts                server-only Canvas client (reads the token)
   google-auth.ts           server-only Google sign-in (reads the tokens)
   google-calendar.ts       Google Calendar client
   gmail.ts                 Gmail client (headers only, never message bodies)
   weather.ts               server-only weather client (no key needed)
+  duolingo.ts              Duolingo streak client (unofficial endpoint)
   supabase.ts              server-only database client (reads the secret key)
   todos.ts                 rules and queries for projects and to-dos
   request.ts               helpers for reading request bodies and ids
@@ -281,6 +303,22 @@ three days. `account` is `"gmail"` or `"ou"`.
   ]
 }
 ```
+
+### `GET /api/duolingo`
+
+The current streak (`200`):
+
+```json
+{
+  "username": "yourname",
+  "streak": 12,
+  "lastStreakDate": "2026-10-10"
+}
+```
+
+`lastStreakDate` is the last day that counts toward the streak, or `null`
+when there is no streak. A lesson has been done today when it equals
+today's date on the viewer's device.
 
 ### Projects and to-dos
 
