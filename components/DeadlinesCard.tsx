@@ -49,6 +49,8 @@ export function DeadlinesCard() {
     <Card
       title="Classes & deadlines"
       icon={<BookIcon className="size-4" />}
+      // Known once the data has loaded; until then the title is plain text.
+      href={state.status === "ready" ? state.data.canvasUrl : undefined}
       actions={
         pageCount > 1 && (
           <nav aria-label="Deadline pages" className="flex items-center gap-0.5 text-xs text-muted">

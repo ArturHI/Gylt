@@ -13,7 +13,11 @@ export function WeatherCard() {
   const { state } = useApi<WeatherResponse>("/api/weather");
 
   return (
-    <Card title="Weather" icon={<SunIcon className="size-4" />}>
+    <Card
+      title="Weather"
+      icon={<SunIcon className="size-4" />}
+      href={state.status === "ready" ? state.data.forecastUrl : undefined}
+    >
       <WeatherBody state={state} />
     </Card>
   );

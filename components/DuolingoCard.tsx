@@ -13,7 +13,11 @@ export function DuolingoCard() {
   const { state } = useApi<DuolingoResponse>("/api/duolingo");
 
   return (
-    <Card title="Duolingo" icon={<LanguagesIcon className="size-4" />}>
+    <Card
+      title="Duolingo"
+      icon={<LanguagesIcon className="size-4" />}
+      href="https://www.duolingo.com/learn"
+    >
       <DuolingoBody state={state} />
     </Card>
   );

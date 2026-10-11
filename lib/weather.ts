@@ -39,7 +39,14 @@ type NwsPeriod = {
 
 type NwsForecast = { properties: { periods: NwsPeriod[] } };
 
-type Place = { name: string; forecastUrl: string; hourlyUrl: string };
+type Place = {
+  name: string;
+  /** API addresses for the two forecasts. */
+  forecastUrl: string;
+  hourlyUrl: string;
+  /** The forecast page a person would read. */
+  pageUrl: string;
+};
 
 // A location never moves to a different grid square, so step 1 is done once
 // and remembered for as long as the server process lives.
@@ -94,6 +101,7 @@ async function getPlace(): Promise<Place> {
     name: `${city}, ${state}`,
     forecastUrl: point.properties.forecast,
     hourlyUrl: point.properties.forecastHourly,
+    pageUrl: `https://forecast.weather.gov/MapClick.php?lat=${latitude.toFixed(4)}&lon=${longitude.toFixed(4)}`,
   };
   return cachedPlace;
 }
@@ -119,6 +127,7 @@ export async function getWeather(): Promise<WeatherResponse> {
 
   return {
     location: place.name,
+    forecastUrl: place.pageUrl,
     current: { temperature: thisHour.temperature, summary: thisHour.shortForecast },
     days: toWholeDays(daily.properties.periods.filter(isCurrent)).slice(0, DAYS_SHOWN),
   };

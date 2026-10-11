@@ -61,6 +61,7 @@ export function CalendarCard() {
     <Card
       title="Calendar"
       icon={<CalendarIcon className="size-4" />}
+      href="https://calendar.google.com"
       actions={
         <nav aria-label="Calendar months" className="flex items-center gap-0.5 text-xs text-muted">
           <IconButton label="Previous month" onClick={() => setMonth(previousMonth)}>

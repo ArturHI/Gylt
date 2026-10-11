@@ -1,6 +1,6 @@
 import { connection } from "next/server";
 
-import { getCurrentCourses, getUpcomingDeadlines } from "@/lib/canvas";
+import { getCanvasUrl, getCurrentCourses, getUpcomingDeadlines } from "@/lib/canvas";
 import { toErrorResponse } from "@/lib/service-error";
 import type { DeadlinesResponse } from "@/lib/types";
 
@@ -14,7 +14,11 @@ export async function GET() {
   try {
     const courses = await getCurrentCourses();
     const deadlines = await getUpcomingDeadlines(courses);
-    return Response.json({ deadlines, courses } satisfies DeadlinesResponse);
+    return Response.json({
+      deadlines,
+      courses,
+      canvasUrl: getCanvasUrl(),
+    } satisfies DeadlinesResponse);
   } catch (error) {
     return toErrorResponse(error, "Something went wrong loading deadlines.");
   }

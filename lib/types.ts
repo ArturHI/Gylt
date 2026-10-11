@@ -21,6 +21,8 @@ export type Deadline = {
 export type DeadlinesResponse = {
   deadlines: Deadline[];
   courses: Course[];
+  /** The address of the Canvas site itself, for linking to it. */
+  canvasUrl: string;
 };
 
 export type CalendarEvent = {
@@ -59,6 +61,8 @@ export type WeatherDay = {
 export type WeatherResponse = {
   /** For example "Norman, OK". */
   location: string;
+  /** The weather service's full forecast page for this location. */
+  forecastUrl: string;
   /** This hour. Temperature is in degrees Celsius. */
   current: { temperature: number; summary: string };
   /**

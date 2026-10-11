@@ -76,6 +76,11 @@ async function canvasGet<T>(path: string, params: Record<string, string>): Promi
   return (await response.json()) as T;
 }
 
+/** The address of the Canvas site, which is not a secret (unlike the token). */
+export function getCanvasUrl(): string {
+  return readConfig().baseUrl;
+}
+
 export async function getCurrentCourses(): Promise<Course[]> {
   const courses = await canvasGet<CanvasCourse[]>("/courses", {
     enrollment_state: "active",

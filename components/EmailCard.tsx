@@ -11,9 +11,23 @@ const MAX_SHOWN = 5;
 
 type Account = EmailSummary["account"];
 
+// `url` is where the section's title goes for each mailbox. School mail is
+// only copied into Gmail, so its real home (for replying) is Outlook.
 const ACCOUNTS = [
-  { id: "gmail", label: "Personal email", Icon: HomeIcon, empty: "No unread personal email." },
-  { id: "ou", label: "School email", Icon: BriefcaseIcon, empty: "No school email in the last 3 days." },
+  {
+    id: "gmail",
+    label: "Personal email",
+    Icon: HomeIcon,
+    empty: "No unread personal email.",
+    url: "https://mail.google.com/mail/",
+  },
+  {
+    id: "ou",
+    label: "School email",
+    Icon: BriefcaseIcon,
+    empty: "No school email in the last 3 days.",
+    url: "https://outlook.office.com/mail/",
+  },
 ] as const;
 
 export function EmailCard() {
@@ -26,6 +40,7 @@ export function EmailCard() {
     <Card
       title="Email"
       icon={<MailIcon className="size-4" />}
+      href={ACCOUNTS.find(({ id }) => id === account)!.url}
       actions={<AccountToggle selected={account} onSelect={setAccount} />}
     >
       <EmailBody state={state} account={account} />

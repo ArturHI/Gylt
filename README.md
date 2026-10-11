@@ -13,7 +13,10 @@ One calm screen with six sections, all backed by live data:
 
 ## Using the dashboard
 
-- **Move a section:** drag it by its title.
+- **Move a section:** drag it by its title bar.
+- **Open a section's site:** click its name (Canvas, Google Calendar, the
+  forecast, Gmail or Outlook, Duolingo). A click that moves the mouse is
+  treated as a drag instead, so the two never collide.
 - **Resize a section:** drag the small purple corner at its bottom right.
 - **Reset layout** (top right) puts everything back where it started.
 - **Email:** the two buttons in the card's corner switch between personal
@@ -292,7 +295,8 @@ Success (`200`):
       "url": "https://canvas.example.edu/courses/1/assignments/123"
     }
   ],
-  "courses": [{ "id": 1, "name": "CS 2334", "code": "CS-2334" }]
+  "courses": [{ "id": 1, "name": "CS 2334", "code": "CS-2334" }],
+  "canvasUrl": "https://canvas.example.edu"
 }
 ```
 
@@ -333,6 +337,7 @@ high and a low ahead, so in the evening it starts from tomorrow.
 ```json
 {
   "location": "Norman, OK",
+  "forecastUrl": "https://forecast.weather.gov/MapClick.php?lat=35.2226&lon=-97.4395",
   "current": { "temperature": 30, "summary": "Clear" },
   "days": [
     {

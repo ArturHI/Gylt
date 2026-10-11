@@ -47,6 +47,15 @@ export function PlusIcon({ className }: IconProps) {
   );
 }
 
+/** A small "opens elsewhere" arrow. */
+export function ArrowUpRightIcon({ className }: IconProps) {
+  return (
+    <svg {...outline} className={className}>
+      <path d="M7 17 17 7M8 7h9v9" />
+    </svg>
+  );
+}
+
 export function ChevronLeftIcon({ className }: IconProps) {
   return (
     <svg {...outline} className={className}>
