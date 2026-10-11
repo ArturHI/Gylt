@@ -15,7 +15,8 @@ import { parseLocalDate } from "@/lib/relative-time";
 import type { CalendarEvent, EventsResponse } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
 
-const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
+// Weeks run Monday to Sunday.
+const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"];
 
 // The circle around a day number.
 //
@@ -106,8 +107,10 @@ function MonthGrid({
   const today = dayKey(new Date());
   const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
   // Empty cells before the 1st, so it lands under the right weekday.
-  // getDay() is 0 for Sunday, which is also our first column.
-  const blanks = month.getDay();
+  // getDay() counts from Sunday (0) to Saturday (6), but our first column
+  // is Monday. Adding 6 and wrapping at 7 shifts that to Monday = 0 through
+  // Sunday = 6.
+  const blanks = (month.getDay() + 6) % 7;
 
   return (
     // Seven equal columns. `auto-rows-fr` shares the height between the
